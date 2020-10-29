@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssm.mapper.IPermissionMapper">
+    <resultMap id="PermissionResult" type="com.ssm.domain.Permission">
+        <id property="id" column="id"/>
+        <result property="permissionName" column="permissionName"/>
+        <result property="url" column="url"/>
+        <collection property="roles" column="id" javaType="java.util.List" select="getRolesByUserId"/>
+    </resultMap>
+
+    <resultMap id="RoleResult" type="com.ssm.domain.Role">
+        <id property="id" column="r_id"/>
+        <result property="roleName" column="r_roleName"/>
+        <result property="roleDesc" column="r_roleDesc"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="PermissionResult">
+        SELECT
+          *
+        FROM
+            sys_permission
+    </select>
+
+    <select id="findById" parameterType="Integer" resultMap="PermissionResult">
+        SELECT
+          *
+        FROM
+            sys_permission
+        WHERE id = #{id}
+    </select>
+
+    <select id="getRolesByUserId" parameterType="Integer" resultMap="RoleResult">
+        SELECT
+          r.id as r_id, r.roleName as r_roleName, r.roleDesc as r_roleDesc
+        FROM
+            sys_role_permission rp
+        LEFT JOIN sys_role r ON rp.roleId = r.id
+        WHERE rp.permissionId = #{id}
+    </select>
+
+    <select id="save" parameterType="com.ssm.domain.Permission">
+        insert into sys_permission (
+            id,
+            permissionName,
+            url
+        )
+        values(
+            #{id},
+            #{permissionName},
+            #{url}
+        )
+    </select>
+
+</mapper>

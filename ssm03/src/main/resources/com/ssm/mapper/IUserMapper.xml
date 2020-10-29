@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssm.mapper.IUserMapper">
+    <resultMap id="UserResult" type="com.ssm.domain.User">
+        <id property="id" column="id"/>
+        <result property="email" column="email"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="phoneNum" column="phoneNum"/>
+        <result property="status" column="status"/>
+        <collection property="roles" column="id" javaType="java.util.List" select="getRolesByUserId"/>
+    </resultMap>
+
+    <resultMap id="RoleResult" type="com.ssm.domain.Role">
+        <id property="id" column="r_id"/>
+        <result property="roleName" column="r_roleName"/>
+        <result property="roleDesc" column="r_roleDesc"/>
+        <collection property="permissions" column="r_id" javaType="java.util.List" select="getPermissionsByRoleId"/>
+    </resultMap>
+
+    <resultMap id="PermissionResult" type="com.ssm.domain.Permission">
+        <id property="id" column="p_id"/>
+        <result property="permissionName" column="p_permissionName"/>
+        <result property="url" column="p_url"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="UserResult">
+        SELECT
+          *
+        FROM
+            sys_user
+    </select>
+
+    <select id="findById" parameterType="Integer" resultMap="UserResult">
+        SELECT
+          *
+        FROM
+            sys_user
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByUsername" parameterType="String" resultMap="UserResult">
+        SELECT
+          *
+        FROM
+            sys_user
+        WHERE username = #{username}
+    </select>
+
+    <select id="findUserUnExistRoleByUserId" parameterType="Integer" resultMap="RoleResult">
+        SELECT
+            r.id as r_id,
+            r.roleName as r_roleName,
+            r.roleDesc as r_roleDesc
+        FROM
+            sys_role r
+        WHERE
+            r.id NOT IN (
+                SELECT
+                    roleId
+                FROM
+                    sys_user_role
+                WHERE
+                    userId = #{userId}
+            )
+    </select>
+
+    <select id="getRolesByUserId" parameterType="Integer" resultMap="RoleResult">
+        SELECT
+            r.id AS r_id,
+            r.roleName AS r_roleName,
+            r.roleDesc AS r_roleDesc
+        FROM
+            sys_user_role ur
+        LEFT JOIN sys_role r ON ur.roleId = r.id
+        WHERE
+            ur.userId = #{id}
+    </select>
+
+    <select id="getPermissionsByRoleId" parameterType="Integer" resultMap="PermissionResult">
+        SELECT
+            p.id AS p_id,
+            p.permissionName AS p_permissionName,
+            p.url AS p_url
+        FROM
+            sys_role_permission rp
+        LEFT JOIN sys_permission p ON rp.permissionId = p.id
+        WHERE
+            rp.roleId = #{r_id}
+    </select>
+
+    <select id="save" parameterType="com.ssm.domain.User">
+        insert into sys_user (
+            id,
+            email,
+            username,
+            password,
+            phoneNum,
+            status
+        )
+        values(
+            #{id},
+            #{email},
+            #{username},
+            #{password},
+            #{phoneNum},
+            #{status}
+        )
+    </select>
+
+    <select id="saveUserUnExistRole">
+        insert into sys_user_role (
+            userId,
+            roleId
+        )
+        values(
+            #{userId},
+            #{roleId}
+        )
+    </select>
+
+</mapper>
